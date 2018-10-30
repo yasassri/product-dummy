@@ -18,9 +18,17 @@
 
 package org.wso2.carbon.esb.endpoint.test;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -49,19 +57,17 @@ public class ScenarioSampleTest {
 
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
-        String backendURL = "https://localhost:9443/services/";
+        String backendURL = "https://" + getBackEndEP() +":9443/services/";
         String sessionCookie;
 
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
-        sessionCookie = authenticatorClient.login("admin", "admin", "localhost");
+        sessionCookie = authenticatorClient.login("admin", "admin", getBackEndEP());
 
         carbonAppUploaderClient = new CarbonAppUploaderClient(backendURL, sessionCookie);
         carbonAppUploaderClient.uploadCarbonAppArtifact(carFileName
                 , new DataHandler(new FileDataSource(new File(resourceLocation + File.separator + "artifacts" + File
-                        .separator +
-                                                              carFileName + ".car")
-                )));
+                        .separator + carFileName + ".car"))));
         isCarFileUploaded = true;
         applicationAdminClient = new ApplicationAdminClient(backendURL, sessionCookie);
         Assert.assertTrue(isCarFileDeployed(carFileName), "Car file deployment failed");
@@ -71,12 +77,48 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation")
     public void testMessageTransformation() throws Exception {
         // Invoke the service and invoke
+        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/60601";
+        HttpGet httpHead = new HttpGet(restURL);
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            HttpResponse response = httpClient.execute(httpHead);
+            log.info(response.getStatusLine());
+            String responseString = "{\n" +
+                                    "  \"LookupCityResult\": {\n" +
+                                    "    \"City\": \"Chicago\",\n" +
+                                    "    \"State\": \"IL\",\n" +
+                                    "    \"Zip\": 60601\n" +
+                                    "  }\n" +
+                                    "}";
+            Assert.assertEquals(IOUtils.toString(response.getEntity().getContent()), responseString);
+        } catch (IOException e) {
+            throw e;
+        }
     }
+
+//    @Test(description = "Test HTTP the transformation when a invalid status code is given")
+//    public void testMessageTransformationForInvalidCode() throws Exception {
+//        // Invoke the service and invoke
+//        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/60601000000000";
+//        HttpGet httpHead = new HttpGet(restURL);
+//        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+//            HttpResponse response = httpClient.execute(httpHead);
+//            log.info(response.getStatusLine());
+//            String responseString = "{\n" +
+//                                    "  \"LookupCityResult\": {\n" +
+//                                    "    \"City\": \"Chicago\",\n" +
+//                                    "    \"State\": \"IL\",\n" +
+//                                    "    \"Zip\": 60601\n" +
+//                                    "  }\n" +
+//                                    "}";
+//            Assert.assertEquals(IOUtils.toString(response.getEntity().getContent()), responseString);
+//        } catch (IOException e) {
+//            throw e;
+//        }
+//    }
 
     @AfterClass(description = "Test HTTP the transformation")
     public void close() throws Exception {
-
-        //super.cleanup();
+        // Clean up if required
     }
 
     private boolean isCarFileDeployed(String carFileName) throws Exception {
@@ -94,7 +136,6 @@ public class ScenarioSampleTest {
                     return isCarFileDeployed;
                 }
             }
-
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -104,32 +145,21 @@ public class ScenarioSampleTest {
         return isCarFileDeployed;
     }
 
-    private String getBackEndURL() {
+    private String getBackEndEP() {
         String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
         String url = null;
 
         Properties prop = new Properties();
-        InputStream input = null;
-
-        try {
-
-            input = new FileInputStream(bucketLocation + "/deployment.properties");
+        //InputStream input = null;
+        try(InputStream input = new FileInputStream(bucketLocation + "/infrastructure.properties")) {
             prop.load(input);
-            url = prop.getProperty("url");
-
+            url = prop.getProperty("WSO2PublicIP");
         } catch (IOException ex) {
             ex.printStackTrace();
-        } finally {
-            if (input != null) {
-                try {
-                    input.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-        // Construct the proper URL if required
+//         Construct the proper URL if required
         return url;
+//        return "localhost";
     }
 
     private void setKeyStoreProperties() {
