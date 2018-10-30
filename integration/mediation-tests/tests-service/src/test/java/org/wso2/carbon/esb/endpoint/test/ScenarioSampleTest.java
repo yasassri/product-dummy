@@ -60,7 +60,7 @@ public class ScenarioSampleTest {
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
         sessionCookie = authenticatorClient.login("admin", "admin", getBackEndEP());
-
+        log.info("The Backend service URL : " + backendURL);
         carbonAppUploaderClient = new CarbonAppUploaderClient(backendURL, sessionCookie);
         carbonAppUploaderClient.uploadCarbonAppArtifact(carFileName
                 , new DataHandler(new FileDataSource(new File(resourceLocation + File.separator + "artifacts" + File
@@ -75,10 +75,11 @@ public class ScenarioSampleTest {
     public void testMessageTransformation() throws Exception {
         // Invoke the service and invoke
         String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/60601";
+        log.info("The API Endpoint : " + restURL);
         HttpGet httpHead = new HttpGet(restURL);
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             HttpResponse response = httpClient.execute(httpHead);
-            log.info(response.getStatusLine());
+            log.info("The response status : " + response.getStatusLine());
             String responseString = "{\n" +
                                     "  \"LookupCityResult\": {\n" +
                                     "    \"City\": \"Chicago\",\n" +
@@ -119,7 +120,6 @@ public class ScenarioSampleTest {
     }
 
     private boolean isCarFileDeployed(String carFileName) throws Exception {
-
         log.info("waiting " + MAX_TIME + " millis for car deployment " + carFileName);
         boolean isCarFileDeployed = false;
         Calendar startTime = Calendar.getInstance();
@@ -156,7 +156,6 @@ public class ScenarioSampleTest {
         }
 //         Construct the proper URL if required
         return url;
-//        return "localhost";
     }
 
     private void setKeyStoreProperties() {
