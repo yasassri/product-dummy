@@ -95,26 +95,6 @@
                             <stripVersion>true</stripVersion>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>unpack-mar-jks</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>org.wso2.ei</groupId>
-                                    <artifactId>wso2ei</artifactId>
-                                    <version>${product.ei.version}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${basedir}/target/tobeCopied/</outputDirectory>
-                                    <includes>**/*.jks,**/*.mar,**/synapse_sample*.xml</includes>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
             <plugin>
