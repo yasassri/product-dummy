@@ -66,8 +66,7 @@ public class ScenarioSampleTest {
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
         infraProperties = initializeProperties();
-        String backendURL = "https://" + getServerHost() + ":9443/services/";
-
+        String backendURL = infraProperties.getProperty(CARBON_SERVER_URL);
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
         String sessionCookie = authenticatorClient.login("admin", "admin", getServerHost());
@@ -83,7 +82,7 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation", enabled = true)
     public void testMessageTransformation() throws Exception {
         // Invoke the service and invoke
-        String restURL = "http://" + getServerHost() + ":8280/city/lookup/60601";
+        String restURL = infraProperties.getProperty(ESB_HTTP_URL) + "/city/lookup/60601";
         log.info("The API Endpoint : " + restURL);
         HttpGet httpGet = new HttpGet(restURL);
         Thread.sleep(1000);
@@ -108,7 +107,7 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation when a invalid status code is given")
     public void testMessageTransformationForInvalidCode() throws Exception {
         // Invoke the service and invoke
-        String restURL = "http://" + getServerHost() + ":8280/city/lookup/6060100";
+        String restURL = infraProperties.getProperty(ESB_HTTP_URL) + "/city/lookup/6060100";
         HttpGet httpHead = new HttpGet(restURL);
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpHead)) {
@@ -158,6 +157,8 @@ public class ScenarioSampleTest {
                 //ignore
             }
         }
+        // Sleep to make sure that the Capp is deployed to second node
+        Thread.sleep(120000);
         return isCarFileDeployed;
     }
 
