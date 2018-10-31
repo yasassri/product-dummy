@@ -22,7 +22,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -52,7 +51,7 @@ public class ScenarioSampleTest {
     private final int MAX_TIME = 120000;
     private final String carFileName = "SOAPToJSONCarbonApplication_1.0.0";
     String resourceLocation = System.getProperty("framework.resource.location");
-    int timeout = 5;
+    int timeout = 10;
     RequestConfig config = RequestConfig.custom()
                                         .setConnectTimeout(timeout * 100)
                                         .setConnectionRequestTimeout(timeout * 1000)
@@ -103,7 +102,7 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation when a invalid status code is given")
     public void testMessageTransformationForInvalidCode() throws Exception {
         // Invoke the service and invoke
-        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/606010000";
+        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/6060100";
         HttpGet httpHead = new HttpGet(restURL);
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpHead)) {
@@ -157,7 +156,6 @@ public class ScenarioSampleTest {
     }
 
     private String getBackEndEP() {
-
         String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
         String url = null;
 
