@@ -51,7 +51,7 @@ public class ScenarioSampleTest {
     private final int MAX_TIME = 120000;
     private final String carFileName = "SOAPToJSONCarbonApplication_1.0.0";
     String resourceLocation = System.getProperty("framework.resource.location");
-    int timeout = 10;
+    int timeout = 20;
     RequestConfig config = RequestConfig.custom()
                                         .setConnectTimeout(timeout * 100)
                                         .setConnectionRequestTimeout(timeout * 1000)
