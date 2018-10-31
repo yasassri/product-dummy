@@ -95,7 +95,7 @@ public class ScenarioSampleTest {
                 Assert.assertEquals(IOUtils.toString(response.getEntity().getContent()), responseString);
             }
         } catch (IOException e) {
-            //throw e;
+            throw e;
         }
     }
 
@@ -167,9 +167,8 @@ public class ScenarioSampleTest {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-
         //Construct the proper URL if required
-        return url == null ? "localhost" : url;
+        return url == null ? "localhost" : url.split("/")[2];
     }
 
     private void setKeyStoreProperties() {
