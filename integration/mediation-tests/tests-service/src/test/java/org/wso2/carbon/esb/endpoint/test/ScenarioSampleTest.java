@@ -22,6 +22,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 
@@ -51,7 +53,7 @@ public class ScenarioSampleTest {
     private final int MAX_TIME = 120000;
     private final String carFileName = "SOAPToJSONCarbonApplication_1.0.0";
     String resourceLocation = System.getProperty("framework.resource.location");
-    int timeout = 10;
+    int timeout = 5;
     RequestConfig config = RequestConfig.custom()
                                         .setConnectTimeout(timeout * 100)
                                         .setConnectionRequestTimeout(timeout * 1000)
@@ -84,7 +86,15 @@ public class ScenarioSampleTest {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 log.info("The response status : " + response.getStatusLine());
-                Assert.assertEquals(response.getStatusLine().getStatusCode(), 404);
+                String responseString = "{\n" +
+                                        "  \"LookupCityResult\": {\n" +
+                                        "    \"City\": \"Chicago\",\n" +
+                                        "    \"State\": \"IL\",\n" +
+                                        "    \"Zip\": 60601\n" +
+                                        "  }\n" +
+                                        "}";
+                Assert.assertEquals(response.getStatusLine().getStatusCode(), 200);
+                Assert.assertEquals(IOUtils.toString(response.getEntity().getContent()), responseString);
             }
         } catch (IOException e) {
             //throw e;
@@ -100,10 +110,10 @@ public class ScenarioSampleTest {
             try (CloseableHttpResponse response = httpClient.execute(httpHead)) {
                 log.info(response.getStatusLine());
                 String responseString = "{\n" +
-                                        "  \"LookupCityResult\": {\n" +
-                                        "    \"City\": \"Chicago\",\n" +
-                                        "    \"State\": \"IL\",\n" +
-                                        "    \"Zip\": 60601\n" +
+                                        "  \"Error\": {\n" +
+                                        "    \"message\": \"Error while processing the request\",\n" +
+                                        "    \"code\": \"0\",\n" +
+                                        "    \"description\": \"Error while building message. Error while building Passthrough stream\"\n" +
                                         "  }\n" +
                                         "}";
                 Assert.assertEquals(IOUtils.toString(response.getEntity().getContent()), responseString);
@@ -156,12 +166,11 @@ public class ScenarioSampleTest {
             ex.printStackTrace();
         }
 
-//         Construct the proper URL if required
+        //Construct the proper URL if required
         return url == null ? "localhost" : url;
     }
 
     private void setKeyStoreProperties() {
-
         System.setProperty("javax.net.ssl.trustStore", resourceLocation + "/keystores/wso2carbon.jks");
         System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
         System.setProperty("javax.net.ssl.trustStoreType", "JKS");
