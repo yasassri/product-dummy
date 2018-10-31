@@ -169,7 +169,7 @@ public class ScenarioSampleTest {
             ex.printStackTrace();
         }
 
-        if (url != null) {
+        if (url != null && url.contains("/")) {
             url = url.split("/")[2];
         } else {
             url = "localhost";
