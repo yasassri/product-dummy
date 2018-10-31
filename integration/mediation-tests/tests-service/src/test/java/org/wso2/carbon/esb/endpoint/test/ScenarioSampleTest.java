@@ -45,10 +45,16 @@ import javax.activation.FileDataSource;
 
 public class ScenarioSampleTest {
 
+    private static final String MGT_CONSOLE_URL = "MgtConsoleUrl";
+    private static final String CARBON_SERVER_URL = "CarbonServerUrl";
+    private static final String ESB_HTTP_URL = "ESBHTTPUrl";
+    private static final String ESB_HTTPS_URL = "ESBHTTPsUrl";
+
     protected Log log = LogFactory.getLog(getClass());
     private CarbonAppUploaderClient carbonAppUploaderClient;
     private ApplicationAdminClient applicationAdminClient;
     private final int MAX_TIME = 120000;
+    Properties infraProperties;
     private final String carFileName = "SOAPToJSONCarbonApplication_1.0.0";
     String resourceLocation = System.getProperty("framework.resource.location");
     int timeout = 20;
@@ -59,13 +65,13 @@ public class ScenarioSampleTest {
 
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
-
-        String backendURL = "https://" + getBackEndEP() + ":9443/services/";
+        infraProperties = initializeProperties();
+        String backendURL = "https://" + getServerHost() + ":9443/services/";
 
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
-        String sessionCookie = authenticatorClient.login("admin", "admin", getBackEndEP());
-        log.info("The Backend service URL : " + backendURL);
+        String sessionCookie = authenticatorClient.login("admin", "admin", getServerHost());
+        log.info("The Backend service URL : " + backendURL + ". session cookie: " + sessionCookie);
         carbonAppUploaderClient = new CarbonAppUploaderClient(backendURL, sessionCookie);
         DataHandler dh = new DataHandler(new FileDataSource(new File(resourceLocation + File.separator + "artifacts" +
                                                                      File.separator + carFileName + ".car")));
@@ -77,7 +83,7 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation", enabled = true)
     public void testMessageTransformation() throws Exception {
         // Invoke the service and invoke
-        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/60601";
+        String restURL = "http://" + getServerHost() + ":8280/city/lookup/60601";
         log.info("The API Endpoint : " + restURL);
         HttpGet httpGet = new HttpGet(restURL);
         Thread.sleep(1000);
@@ -102,7 +108,7 @@ public class ScenarioSampleTest {
     @Test(description = "Test HTTP the transformation when a invalid status code is given")
     public void testMessageTransformationForInvalidCode() throws Exception {
         // Invoke the service and invoke
-        String restURL = "http://" + getBackEndEP() + ":8280/city/lookup/6060100";
+        String restURL = "http://" + getServerHost() + ":8280/city/lookup/6060100";
         HttpGet httpHead = new HttpGet(restURL);
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpHead)) {
@@ -155,28 +161,33 @@ public class ScenarioSampleTest {
         return isCarFileDeployed;
     }
 
-    private String getBackEndEP() {
+    private String getServerHost() {
         String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
-        String url = null;
         log.info("Data Bucket location is set : " + bucketLocation);
-
-        Properties prop = new Properties();
-        //InputStream input = null;
-        try (InputStream input = new FileInputStream(bucketLocation + "/infrastructure.properties")) {
-            prop.load(input);
-            url = prop.getProperty("WSO2PublicIP");
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
+        String url = infraProperties.getProperty(MGT_CONSOLE_URL);
         if (url != null && url.contains("/")) {
             url = url.split("/")[2];
-        } else if (url == null){
+        } else if (url == null) {
             url = "localhost";
         }
-        //Construct the proper URL if required
-        log.info("Backend URL is set as : " + bucketLocation);
+        log.info("Backend URL is set as : " + url);
         return url;
+    }
+
+    /**
+     * initializing the test properties
+     * @return properties
+     * @throws IOException thrown if properties file is not available
+     */
+    private Properties initializeProperties() throws IOException {
+        Properties props = new Properties();
+        String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
+        try (InputStream input = new FileInputStream(bucketLocation + "/infrastructure.properties")) {
+            props.load(input);
+        } catch (IOException ex) {
+            throw ex;
+        }
+        return props;
     }
 
     private void setKeyStoreProperties() {
