@@ -171,7 +171,7 @@ public class ScenarioSampleTest {
 
         if (url != null && url.contains("/")) {
             url = url.split("/")[2];
-        } else {
+        } else if (url == null){
             url = "localhost";
         }
         //Construct the proper URL if required
