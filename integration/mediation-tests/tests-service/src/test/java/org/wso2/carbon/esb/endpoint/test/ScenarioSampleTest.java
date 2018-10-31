@@ -47,8 +47,8 @@ public class ScenarioSampleTest {
 
     private static final String MGT_CONSOLE_URL = "MgtConsoleUrl";
     private static final String CARBON_SERVER_URL = "CarbonServerUrl";
-    private static final String ESB_HTTP_URL = "ESBHTTPUrl";
-    private static final String ESB_HTTPS_URL = "ESBHTTPsUrl";
+    private static final String ESB_HTTP_URL = "ESBHttpUrl";
+    private static final String ESB_HTTPS_URL = "ESBHttpsUrl";
 
     protected Log log = LogFactory.getLog(getClass());
     private CarbonAppUploaderClient carbonAppUploaderClient;
@@ -66,7 +66,7 @@ public class ScenarioSampleTest {
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
         infraProperties = initializeProperties();
-        String backendURL = infraProperties.getProperty(CARBON_SERVER_URL);
+        String backendURL = infraProperties.getProperty(CARBON_SERVER_URL) + "/";
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
         String sessionCookie = authenticatorClient.login("admin", "admin", getServerHost());
