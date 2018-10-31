@@ -41,7 +41,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 
@@ -121,6 +120,11 @@ public class ScenarioSampleTest {
         } catch (IOException e) {
             throw e;
         }
+    }
+
+    @Test(description = "Test HTTP the transformation when a invalid status code is given")
+    public void testMessageTransformationFailure() throws Exception {
+        Assert.assertTrue(false, "This test is intentionally failed!");
     }
 
     @AfterClass(description = "Test HTTP the transformation")
