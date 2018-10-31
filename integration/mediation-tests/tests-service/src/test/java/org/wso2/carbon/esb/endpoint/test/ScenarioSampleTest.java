@@ -76,6 +76,8 @@ public class ScenarioSampleTest {
                                                                      File.separator + carFileName + ".car")));
         carbonAppUploaderClient.uploadCarbonAppArtifact(carFileName + ".car", dh);
         applicationAdminClient = new ApplicationAdminClient(backendURL, sessionCookie);
+        // Wait for Capp to sync
+        Thread.sleep(60000);
         Assert.assertTrue(isCarFileDeployed(carFileName), "Car file deployment failed");
     }
 
@@ -157,8 +159,6 @@ public class ScenarioSampleTest {
                 //ignore
             }
         }
-        // Sleep to make sure that the Capp is deployed to second node
-        Thread.sleep(120000);
         return isCarFileDeployed;
     }
 
