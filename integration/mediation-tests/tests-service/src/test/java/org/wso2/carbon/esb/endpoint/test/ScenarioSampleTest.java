@@ -128,7 +128,7 @@ public class ScenarioSampleTest {
         }
     }
 
-    @Test(description = "Test HTTP the transformation when a invalid status code is given")
+    @Test(description = "Test HTTP the transformation when a invalid status code is given", enabled = false)
     public void testMessageTransformationFailure() throws Exception {
         Assert.assertTrue(false, "This test is intentionally failed!");
     }
