@@ -52,7 +52,7 @@ public class ScenarioTestBase {
 
     private static void loadProperties(Path propsFile, Properties props) {
         String msg = "Deployment property file not found: ";
-        if (Files.exists(propsFile)) {
+        if (!Files.exists(propsFile)) {
             log.warn(msg + propsFile);
             return;
         }
