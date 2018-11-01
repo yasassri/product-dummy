@@ -35,42 +35,35 @@ import org.wso2.carbon.integration.common.admin.client.ApplicationAdminClient;
 import org.wso2.carbon.integration.common.admin.client.CarbonAppUploaderClient;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 
-public class ScenarioSampleTest {
-
-    private static final String MGT_CONSOLE_URL = "MgtConsoleUrl";
-    private static final String CARBON_SERVER_URL = "CarbonServerUrl";
-    private static final String ESB_HTTP_URL = "ESBHttpUrl";
-    private static final String ESB_HTTPS_URL = "ESBHttpsUrl";
+public class ScenarioSampleTest extends ScenarioTestBase {
 
     protected Log log = LogFactory.getLog(getClass());
+    Properties infraProperties;
+
     private CarbonAppUploaderClient carbonAppUploaderClient;
     private ApplicationAdminClient applicationAdminClient;
-    private final int MAX_TIME = 120000;
-    Properties infraProperties;
     private final String carFileName = "SOAPToJSONCarbonApplication_1.0.0";
-    String resourceLocation = System.getProperty("framework.resource.location");
     int timeout = 20;
-    RequestConfig config = RequestConfig.custom()
-                                        .setConnectTimeout(timeout * 100)
-                                        .setConnectionRequestTimeout(timeout * 1000)
-                                        .setSocketTimeout(timeout * 1000).build();
+    RequestConfig requestConfig = RequestConfig.custom()
+                                               .setConnectTimeout(timeout * 100)
+                                               .setConnectionRequestTimeout(timeout * 1000)
+                                               .setSocketTimeout(timeout * 1000).build();
 
     @BeforeClass(alwaysRun = true)
     public void init() throws Exception {
-        infraProperties = initializeProperties();
+        infraProperties = getDeploymentProperties();
         String backendURL = infraProperties.getProperty(CARBON_SERVER_URL) + "/";
         setKeyStoreProperties();
         AuthenticatorClient authenticatorClient = new AuthenticatorClient(backendURL);
         String sessionCookie = authenticatorClient.login("admin", "admin", getServerHost());
         log.info("The Backend service URL : " + backendURL + ". session cookie: " + sessionCookie);
+
         carbonAppUploaderClient = new CarbonAppUploaderClient(backendURL, sessionCookie);
         DataHandler dh = new DataHandler(new FileDataSource(new File(resourceLocation + File.separator + "artifacts" +
                                                                      File.separator + carFileName + ".car")));
@@ -88,7 +81,7 @@ public class ScenarioSampleTest {
         log.info("The API Endpoint : " + restURL);
         HttpGet httpGet = new HttpGet(restURL);
         Thread.sleep(1000);
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
                 log.info("The response status : " + response.getStatusLine());
                 String responseString = "{\n" +
@@ -111,7 +104,7 @@ public class ScenarioSampleTest {
         // Invoke the service and invoke
         String restURL = infraProperties.getProperty(ESB_HTTP_URL) + "/city/lookup/6060100";
         HttpGet httpHead = new HttpGet(restURL);
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build()) {
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build()) {
             try (CloseableHttpResponse response = httpClient.execute(httpHead)) {
                 log.info(response.getStatusLine());
                 String responseString = "{\n" +
@@ -140,11 +133,12 @@ public class ScenarioSampleTest {
 
     private boolean isCarFileDeployed(String carFileName) throws Exception {
 
-        log.info("waiting " + MAX_TIME + " millis for car deployment " + carFileName);
+        log.info("waiting " + ARTIFACT_DEPLOYMENT_WAIT_TIME_MS + " millis for car deployment " + carFileName);
         boolean isCarFileDeployed = false;
         Calendar startTime = Calendar.getInstance();
         long time;
-        while ((time = (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())) < MAX_TIME) {
+        while ((time = (Calendar.getInstance().getTimeInMillis() - startTime.getTimeInMillis())) <
+               ARTIFACT_DEPLOYMENT_WAIT_TIME_MS) {
             String[] applicationList = applicationAdminClient.listAllApplications();
             if (applicationList != null) {
                 if (ArrayUtils.contains(applicationList, carFileName)) {
@@ -173,22 +167,6 @@ public class ScenarioSampleTest {
         }
         log.info("Backend URL is set as : " + url);
         return url;
-    }
-
-    /**
-     * initializing the test properties
-     * @return properties
-     * @throws IOException thrown if properties file is not available
-     */
-    private Properties initializeProperties() throws IOException {
-        Properties props = new Properties();
-        String bucketLocation = System.getenv("DATA_BUCKET_LOCATION");
-        try (InputStream input = new FileInputStream(bucketLocation + "/infrastructure.properties")) {
-            props.load(input);
-        } catch (IOException ex) {
-            throw ex;
-        }
-        return props;
     }
 
     private void setKeyStoreProperties() {

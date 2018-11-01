@@ -25,7 +25,7 @@
                     </suiteXmlFiles>
                     <systemProperties>
                         <property>
-                            <name>framework.resource.location</name>
+                            <name>test.resources.dir</name>
                             <value>
                                 ${basedir}/src/test/resources/
                             </value>
